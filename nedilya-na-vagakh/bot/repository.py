@@ -11,6 +11,10 @@ DEFAULT_REMINDER_TIMEZONE = "Europe/Kyiv"
 DEFAULT_REMINDER_WEEKDAY = 6
 
 
+class RepositoryError(RuntimeError):
+    """Raised when a repository operation does not persist as expected."""
+
+
 def _row_to_settings(row: sqlite3.Row) -> UserSettings:
     return UserSettings(
         telegram_user_id=row["telegram_user_id"],
@@ -69,7 +73,10 @@ def get_or_create_settings(
         "SELECT * FROM user_settings WHERE telegram_user_id = ?",
         (telegram_user_id,),
     ).fetchone()
-    assert created is not None
+    if created is None:
+        raise RepositoryError(
+            f"user_settings row missing after insert for user {telegram_user_id}"
+        )
     return _row_to_settings(created)
 
 
@@ -93,11 +100,17 @@ def insert_weigh_in(
     )
     conn.commit()
 
+    if cursor.lastrowid is None:
+        raise RepositoryError("weigh-in insert did not return a row id")
+
     row = conn.execute(
         "SELECT * FROM weigh_ins WHERE id = ?",
         (cursor.lastrowid,),
     ).fetchone()
-    assert row is not None
+    if row is None:
+        raise RepositoryError(
+            f"weigh-in row missing after insert (id={cursor.lastrowid})"
+        )
     return _row_to_weigh_in(row)
 
 
@@ -125,3 +138,34 @@ def delete_latest_weigh_in(conn: sqlite3.Connection, user_id: int) -> WeighIn | 
     conn.execute("DELETE FROM weigh_ins WHERE id = ?", (latest.id,))
     conn.commit()
     return latest
+
+
+def get_first_weigh_in(conn: sqlite3.Connection, user_id: int) -> WeighIn | None:
+    row = conn.execute(
+        """
+        SELECT * FROM weigh_ins
+        WHERE user_id = ?
+        ORDER BY recorded_at ASC, id ASC
+        LIMIT 1
+        """,
+        (user_id,),
+    ).fetchone()
+
+    if row is None:
+        return None
+    return _row_to_weigh_in(row)
+
+
+def list_weigh_ins_desc(
+    conn: sqlite3.Connection, user_id: int, *, limit: int
+) -> list[WeighIn]:
+    rows = conn.execute(
+        """
+        SELECT * FROM weigh_ins
+        WHERE user_id = ?
+        ORDER BY recorded_at DESC, id DESC
+        LIMIT ?
+        """,
+        (user_id, limit),
+    ).fetchall()
+    return [_row_to_weigh_in(row) for row in rows]

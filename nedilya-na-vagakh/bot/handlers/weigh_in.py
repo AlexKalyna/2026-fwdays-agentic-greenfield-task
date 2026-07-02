@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+import sqlite3
 from typing import Any
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from bot.compare import build_comparison_message
 from bot.db import connect
+from bot.models import WeighIn
 from bot.parse import ParseError, format_uk_decimal, parse_weigh_in
 from bot.repository import (
+    RepositoryError,
     delete_latest_weigh_in,
+    get_first_weigh_in,
+    get_latest_weigh_in,
     get_or_create_settings,
     insert_weigh_in,
 )
@@ -25,6 +31,7 @@ INVALID_MESSAGE = (
 )
 UNDO_OK_MESSAGE = "Останній запис скасовано."
 UNDO_EMPTY_MESSAGE = "Немає записів для скасування."
+SAVE_ERROR_MESSAGE = "Не вдалося зберегти запис. Спробуй ще раз через /вага."
 
 
 def _user_data(context: ContextTypes.DEFAULT_TYPE) -> dict[str, Any]:
@@ -67,11 +74,17 @@ async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await message.reply_text(INVALID_MESSAGE, parse_mode="Markdown")
         return
 
+    user_data = _user_data(context)
     database_path = context.bot_data["database_path"]
     conn = connect(database_path)
+    saved = False
+    success_reply: str | None = None
+    inserted: WeighIn | None = None
+    previous: WeighIn | None = None
     try:
         get_or_create_settings(conn, user.id)
-        insert_weigh_in(
+        previous = get_latest_weigh_in(conn, user.id)
+        inserted = insert_weigh_in(
             conn,
             user_id=user.id,
             weight_kg=parsed.weight_kg,
@@ -79,18 +92,34 @@ async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             muscle_pct=parsed.muscle_pct,
             bmi=parsed.bmi,
         )
-    finally:
-        conn.close()
-
-    _user_data(context)[AWAITING_WEIGH_IN_KEY] = False
-    await message.reply_text(
-        _success_message(
+        saved = True
+    except (RepositoryError, sqlite3.Error):
+        await message.reply_text(SAVE_ERROR_MESSAGE)
+    else:
+        factual = _success_message(
             parsed.weight_kg,
             parsed.fat_pct,
             parsed.muscle_pct,
             parsed.bmi,
         )
-    )
+        try:
+            first = get_first_weigh_in(conn, user.id) if previous is not None else None
+            entry_count = 1 if previous is None else 2
+            comparison = build_comparison_message(
+                inserted,
+                previous=previous,
+                first=first,
+                entry_count=entry_count,
+            )
+            success_reply = f"{factual}\n\n{comparison}"
+        except (RepositoryError, sqlite3.Error):
+            success_reply = factual
+    finally:
+        conn.close()
+        user_data[AWAITING_WEIGH_IN_KEY] = False
+
+    if saved and success_reply is not None:
+        await message.reply_text(success_reply)
 
 
 async def skasuvaty_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

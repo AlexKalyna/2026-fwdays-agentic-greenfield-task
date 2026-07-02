@@ -8,6 +8,7 @@ from bot.handlers.weigh_in import (
     AWAITING_WEIGH_IN_KEY,
     HINT_MESSAGE,
     INVALID_MESSAGE,
+    SAVE_ERROR_MESSAGE,
     UNDO_EMPTY_MESSAGE,
     UNDO_OK_MESSAGE,
     skasuvaty_command,
@@ -15,6 +16,7 @@ from bot.handlers.weigh_in import (
     weigh_in_message,
 )
 from bot.repository import (
+    RepositoryError,
     get_latest_weigh_in,
     get_or_create_settings,
     insert_weigh_in,
@@ -67,7 +69,142 @@ async def test_weigh_in_message_persists_valid_input(tmp_path):
     assert latest is not None
     assert latest.weight_kg == 72.4
     update.effective_message.reply_text.assert_awaited_once()
-    assert "Записано" in update.effective_message.reply_text.await_args.args[0]
+    reply = update.effective_message.reply_text.await_args.args[0]
+    assert "Записано" in reply
+    assert "Стартова точка" in reply
+
+
+@pytest.mark.asyncio
+async def test_weigh_in_message_second_entry_includes_deltas(tmp_path):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=72.4,
+        fat_pct=28.5,
+        muscle_pct=32.1,
+        bmi=24.8,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    conn.close()
+
+    update = _make_message_update(42, "71,8 28,2 32,3 24,6")
+    context = MagicMock()
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True}
+    context.bot_data = {"database_path": db_path}
+
+    await weigh_in_message(update, context)
+
+    reply = update.effective_message.reply_text.await_args.args[0]
+    assert "Порівняно з попереднім:" in reply
+    assert "вага −0,6 кг," in reply
+    assert "Від старту: −0,6 кг" in reply
+
+
+@pytest.mark.asyncio
+async def test_weigh_in_message_backdated_entry_uses_pre_insert_previous(
+    tmp_path, monkeypatch
+):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=72.4,
+        fat_pct=28.5,
+        muscle_pct=32.1,
+        bmi=24.8,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=71.0,
+        fat_pct=28.0,
+        muscle_pct=32.0,
+        bmi=24.5,
+        recorded_at="2026-09-01T09:00:00+00:00",
+    )
+    conn.close()
+
+    original_insert = insert_weigh_in
+
+    def insert_with_august_timestamp(conn, **kwargs):
+        return original_insert(
+            conn,
+            recorded_at="2026-08-01T09:00:00+00:00",
+            **kwargs,
+        )
+
+    update = _make_message_update(42, "70,5 27,5 32,5 24,0")
+    context = MagicMock()
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True}
+    context.bot_data = {"database_path": db_path}
+
+    import bot.handlers.weigh_in as weigh_in_module
+
+    monkeypatch.setattr(
+        weigh_in_module,
+        "insert_weigh_in",
+        insert_with_august_timestamp,
+    )
+
+    await weigh_in_message(update, context)
+
+    reply = update.effective_message.reply_text.await_args.args[0]
+    assert "Порівняно з попереднім:" in reply
+    assert "вага −0,5 кг," in reply
+    assert "Від старту: −1,9 кг" in reply
+
+
+@pytest.mark.asyncio
+async def test_weigh_in_message_still_confirms_when_comparison_lookup_fails(
+    tmp_path, monkeypatch
+):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=72.4,
+        fat_pct=28.5,
+        muscle_pct=32.1,
+        bmi=24.8,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    conn.close()
+
+    update = _make_message_update(42, "71,8 28,2 32,3 24,6")
+    context = MagicMock()
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True}
+    context.bot_data = {"database_path": db_path}
+
+    def fail_first_lookup(*_args, **_kwargs):
+        raise RepositoryError("simulated comparison lookup failure")
+
+    monkeypatch.setattr(
+        "bot.handlers.weigh_in.get_first_weigh_in",
+        fail_first_lookup,
+    )
+
+    await weigh_in_message(update, context)
+
+    conn = connect(db_path)
+    latest = get_latest_weigh_in(conn, user_id=42)
+    conn.close()
+
+    assert latest is not None
+    assert latest.weight_kg == 71.8
+    reply = update.effective_message.reply_text.await_args.args[0]
+    assert "Записано" in reply
+    assert "Порівняно з попереднім:" not in reply
 
 
 @pytest.mark.asyncio
@@ -83,6 +220,27 @@ async def test_weigh_in_message_invalid_input():
     update.effective_message.reply_text.assert_awaited_once_with(
         INVALID_MESSAGE, parse_mode="Markdown"
     )
+
+
+@pytest.mark.asyncio
+async def test_weigh_in_message_clears_awaiting_on_save_failure(monkeypatch):
+    update = _make_message_update(42, "72,4 28,5 32,1 24,8")
+    context = MagicMock()
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True}
+    context.bot_data = {"database_path": ":memory:"}
+
+    def fail_insert(*_args, **_kwargs):
+        raise RepositoryError("simulated persistence failure")
+
+    monkeypatch.setattr(
+        "bot.handlers.weigh_in.insert_weigh_in",
+        fail_insert,
+    )
+
+    await weigh_in_message(update, context)
+
+    assert context.user_data[AWAITING_WEIGH_IN_KEY] is False
+    update.effective_message.reply_text.assert_awaited_once_with(SAVE_ERROR_MESSAGE)
 
 
 @pytest.mark.asyncio

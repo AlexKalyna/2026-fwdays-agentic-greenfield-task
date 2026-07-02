@@ -50,10 +50,10 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-CMP-01   | After each log, show per-metric delta vs **previous entry** (if any)                             | accepted |
-| FR-CMP-02   | After each log, show **weight delta vs first entry** («від старту») when ≥ 2 entries exist       | accepted |
-| FR-CMP-03   | First entry shows no «vs previous» deltas; confirm as baseline («стартова точка»)              | accepted |
-| FR-CMP-04   | Delta formatting uses Ukrainian decimal comma in display (e.g. `−0,6`)                          | accepted |
+| FR-CMP-01   | After each log, show per-metric delta vs **previous entry** (if any)                             | shipped |
+| FR-CMP-02   | After each log, show **weight delta vs first entry** («від старту») when ≥ 2 entries exist       | shipped |
+| FR-CMP-03   | First entry shows no «vs previous» deltas; confirm as baseline («стартова точка»)              | shipped |
+| FR-CMP-04   | Delta formatting uses Ukrainian decimal comma in display (e.g. `−0,6`)                          | shipped |
 
 ### Progress & history views (capability `history`)
 

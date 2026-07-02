@@ -7,9 +7,11 @@ from bot.repository import (
     DEFAULT_REMINDER_TIMEZONE,
     DEFAULT_REMINDER_WEEKDAY,
     delete_latest_weigh_in,
+    get_first_weigh_in,
     get_latest_weigh_in,
     get_or_create_settings,
     insert_weigh_in,
+    list_weigh_ins_desc,
 )
 
 
@@ -132,4 +134,105 @@ def test_delete_latest_weigh_in_when_empty():
     deleted = delete_latest_weigh_in(conn, user_id=99)
 
     assert deleted is None
+    conn.close()
+
+
+def test_get_first_weigh_in_returns_earliest():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=70.0,
+        fat_pct=27.0,
+        muscle_pct=33.0,
+        bmi=24.0,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=69.0,
+        fat_pct=26.0,
+        muscle_pct=34.0,
+        bmi=23.5,
+        recorded_at="2026-07-01T09:00:00+00:00",
+    )
+
+    first = get_first_weigh_in(conn, user_id=42)
+
+    assert first is not None
+    assert first.weight_kg == 70.0
+    conn.close()
+
+
+def test_get_first_weigh_in_when_empty():
+    conn = connect(":memory:")
+    init_schema(conn)
+
+    assert get_first_weigh_in(conn, user_id=99) is None
+    conn.close()
+
+
+def test_list_weigh_ins_desc_returns_newest_first():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=70.0,
+        fat_pct=27.0,
+        muscle_pct=33.0,
+        bmi=24.0,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=69.0,
+        fat_pct=26.0,
+        muscle_pct=34.0,
+        bmi=23.5,
+        recorded_at="2026-07-01T09:00:00+00:00",
+    )
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=68.5,
+        fat_pct=25.5,
+        muscle_pct=34.5,
+        bmi=23.0,
+        recorded_at="2026-08-01T09:00:00+00:00",
+    )
+
+    recent = list_weigh_ins_desc(conn, user_id=42, limit=2)
+
+    assert len(recent) == 2
+    assert recent[0].weight_kg == 68.5
+    assert recent[1].weight_kg == 69.0
+    conn.close()
+
+
+def test_list_weigh_ins_desc_fewer_than_limit():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=72.4,
+        fat_pct=28.5,
+        muscle_pct=32.1,
+        bmi=24.8,
+        recorded_at="2026-07-01T09:00:00+00:00",
+    )
+
+    recent = list_weigh_ins_desc(conn, user_id=42, limit=2)
+
+    assert len(recent) == 1
+    assert recent[0].weight_kg == 72.4
     conn.close()
