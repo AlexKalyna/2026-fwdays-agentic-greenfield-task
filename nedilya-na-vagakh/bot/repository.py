@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from bot.models import UserSettings, WeighIn
 
@@ -82,7 +82,7 @@ def insert_weigh_in(
     bmi: float,
     recorded_at: str | None = None,
 ) -> WeighIn:
-    timestamp = recorded_at or datetime.now(timezone.utc).isoformat()
+    timestamp = recorded_at or datetime.now(UTC).isoformat()
     cursor = conn.execute(
         """
         INSERT INTO weigh_ins (
@@ -101,9 +101,7 @@ def insert_weigh_in(
     return _row_to_weigh_in(row)
 
 
-def get_latest_weigh_in(
-    conn: sqlite3.Connection, user_id: int
-) -> WeighIn | None:
+def get_latest_weigh_in(conn: sqlite3.Connection, user_id: int) -> WeighIn | None:
     row = conn.execute(
         """
         SELECT * FROM weigh_ins
@@ -119,9 +117,7 @@ def get_latest_weigh_in(
     return _row_to_weigh_in(row)
 
 
-def delete_latest_weigh_in(
-    conn: sqlite3.Connection, user_id: int
-) -> WeighIn | None:
+def delete_latest_weigh_in(conn: sqlite3.Connection, user_id: int) -> WeighIn | None:
     latest = get_latest_weigh_in(conn, user_id)
     if latest is None:
         return None

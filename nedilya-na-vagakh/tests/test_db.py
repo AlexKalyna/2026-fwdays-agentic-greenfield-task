@@ -19,9 +19,7 @@ def test_schema_creates_tables():
 
     tables = {
         row[0]
-        for row in conn.execute(
-            "SELECT name FROM sqlite_master WHERE type = 'table'"
-        )
+        for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
     }
     assert "user_settings" in tables
     assert "weigh_ins" in tables

@@ -36,7 +36,9 @@ def build_application(config: Config) -> Application:
     application.add_handler(TypeHandler(Update, allowlist_gate), group=-1)
 
     application.add_handler(MessageHandler(VAGA_COMMAND, vaga_command), group=0)
-    application.add_handler(MessageHandler(SKASUVATY_COMMAND, skasuvaty_command), group=0)
+    application.add_handler(
+        MessageHandler(SKASUVATY_COMMAND, skasuvaty_command), group=0
+    )
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, weigh_in_message, block=False),
         group=0,

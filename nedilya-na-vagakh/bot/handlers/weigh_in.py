@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -25,7 +27,15 @@ UNDO_OK_MESSAGE = "Останній запис скасовано."
 UNDO_EMPTY_MESSAGE = "Немає записів для скасування."
 
 
-def _success_message(weight_kg: float, fat_pct: float, muscle_pct: float, bmi: float) -> str:
+def _user_data(context: ContextTypes.DEFAULT_TYPE) -> dict[str, Any]:
+    if context.user_data is None:
+        raise RuntimeError("user_data is unavailable outside user-scoped handlers")
+    return context.user_data
+
+
+def _success_message(
+    weight_kg: float, fat_pct: float, muscle_pct: float, bmi: float
+) -> str:
     return (
         "Записано:\n"
         f"вага - {format_uk_decimal(weight_kg)} кг,\n"
@@ -36,13 +46,13 @@ def _success_message(weight_kg: float, fat_pct: float, muscle_pct: float, bmi: f
 
 
 async def vaga_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.user_data[AWAITING_WEIGH_IN_KEY] = True
+    _user_data(context)[AWAITING_WEIGH_IN_KEY] = True
     if update.effective_message is not None:
         await update.effective_message.reply_text(HINT_MESSAGE, parse_mode="Markdown")
 
 
 async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not context.user_data.get(AWAITING_WEIGH_IN_KEY):
+    if not _user_data(context).get(AWAITING_WEIGH_IN_KEY):
         return
 
     message = update.effective_message
@@ -53,7 +63,7 @@ async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     try:
         parsed = parse_weigh_in(message.text)
     except ParseError:
-        context.user_data[AWAITING_WEIGH_IN_KEY] = False
+        _user_data(context)[AWAITING_WEIGH_IN_KEY] = False
         await message.reply_text(INVALID_MESSAGE, parse_mode="Markdown")
         return
 
@@ -72,7 +82,7 @@ async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     finally:
         conn.close()
 
-    context.user_data[AWAITING_WEIGH_IN_KEY] = False
+    _user_data(context)[AWAITING_WEIGH_IN_KEY] = False
     await message.reply_text(
         _success_message(
             parsed.weight_kg,
@@ -89,7 +99,7 @@ async def skasuvaty_command(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if message is None or user is None:
         return
 
-    context.user_data[AWAITING_WEIGH_IN_KEY] = False
+    _user_data(context)[AWAITING_WEIGH_IN_KEY] = False
 
     database_path = context.bot_data["database_path"]
     conn = connect(database_path)

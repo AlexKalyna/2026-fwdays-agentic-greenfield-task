@@ -19,6 +19,9 @@ Bot code lives under `nedilya-na-vagakh/` (see `TC-STACK-03`):
 - Python 3.11+, `python-telegram-bot`, SQLite
 - Unit tests for pure logic (parse, compare, trends, messages) — `NFR-TEST-01`
 - Secrets via environment variables — `NFR-OPS-01`
+- Dev quality gates: Ruff (lint/format), mypy, pre-commit hooks, GitHub Actions CI
+  — run `make check` from `nedilya-na-vagakh/` before archiving a change
+- Local env: `make dev-install` creates a Python 3.11 `.venv` (see `nedilya-na-vagakh/README.md`)
 
 ## Implementation rules
 
@@ -52,7 +55,8 @@ capability until the current change is archived and PRD rows are updated.
 
 After implementing a capability (before `/opsx:archive`):
 
-1. Run unit tests (`pytest` from `nedilya-na-vagakh/`).
+1. Run `make check` from `nedilya-na-vagakh/` (Ruff, mypy, pytest). Pre-commit
+   hooks run automatically on commit/push if installed via `make dev-install`.
 2. Map behavior back to PRD rows — confirm each covered `FR-*` / `NFR-*` /
    `TC-*` for that capability is implemented and covered by code and/or tests.
 3. For integration checks, exercise the bot manually or with targeted tests for

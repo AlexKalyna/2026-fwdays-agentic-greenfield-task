@@ -1,6 +1,6 @@
 import pytest
 
-from bot.parse import ParseError, ParsedWeighIn, parse_weigh_in
+from bot.parse import ParsedWeighIn, ParseError, parse_weigh_in
 
 
 def test_parse_space_separated_comma_decimals():
