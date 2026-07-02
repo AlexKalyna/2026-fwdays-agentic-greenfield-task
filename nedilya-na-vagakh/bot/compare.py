@@ -44,12 +44,15 @@ def build_comparison_message(
         return "Стартова точка — далі порівняємо з нею."
 
     deltas = compute_metric_deltas(current, previous)
+    from bot.trends import classify_metric_deltas
+
+    labels = classify_metric_deltas(deltas)
     lines = [
         "Порівняно з попереднім:",
-        f"вага {format_delta(deltas.weight_kg)} кг,",
-        f"жир {format_delta(deltas.fat_pct)} %,",
-        f"м'язи {format_delta(deltas.muscle_pct)} %,",
-        f"BMI {format_delta(deltas.bmi)}",
+        f"вага {format_delta(deltas.weight_kg)} кг — {labels['weight']},",
+        f"жир {format_delta(deltas.fat_pct)} % — {labels['fat']},",
+        f"м'язи {format_delta(deltas.muscle_pct)} % — {labels['muscle']},",
+        f"BMI {format_delta(deltas.bmi)} — {labels['bmi']}",
     ]
 
     if entry_count >= 2 and first is not None:

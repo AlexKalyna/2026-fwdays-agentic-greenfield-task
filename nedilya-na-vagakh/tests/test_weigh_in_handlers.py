@@ -100,7 +100,10 @@ async def test_weigh_in_message_second_entry_includes_deltas(tmp_path):
 
     reply = update.effective_message.reply_text.await_args.args[0]
     assert "Порівняно з попереднім:" in reply
-    assert "вага −0,6 кг," in reply
+    assert "вага −0,6 кг — прогрес," in reply
+    assert "жир −0,3 % — прогрес," in reply
+    assert "м'язи +0,2 % — прогрес," in reply
+    assert "BMI −0,2 — прогрес" in reply
     assert "Від старту: −0,6 кг" in reply
 
 
@@ -158,7 +161,7 @@ async def test_weigh_in_message_backdated_entry_uses_pre_insert_previous(
 
     reply = update.effective_message.reply_text.await_args.args[0]
     assert "Порівняно з попереднім:" in reply
-    assert "вага −0,5 кг," in reply
+    assert "вага −0,5 кг — прогрес," in reply
     assert "Від старту: −1,9 кг" in reply
 
 
