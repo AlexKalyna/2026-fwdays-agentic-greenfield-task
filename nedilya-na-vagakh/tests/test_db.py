@@ -6,11 +6,13 @@ from bot.repository import (
     DEFAULT_REMINDER_TIME,
     DEFAULT_REMINDER_TIMEZONE,
     DEFAULT_REMINDER_WEEKDAY,
+    count_weigh_ins,
     delete_latest_weigh_in,
     get_first_weigh_in,
     get_latest_weigh_in,
     get_or_create_settings,
     insert_weigh_in,
+    list_weigh_ins_asc,
     list_weigh_ins_desc,
 )
 
@@ -235,4 +237,57 @@ def test_list_weigh_ins_desc_fewer_than_limit():
 
     assert len(recent) == 1
     assert recent[0].weight_kg == 72.4
+    conn.close()
+
+
+def test_list_weigh_ins_asc_returns_oldest_first():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=70.0,
+        fat_pct=27.0,
+        muscle_pct=33.0,
+        bmi=24.0,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=69.0,
+        fat_pct=26.0,
+        muscle_pct=34.0,
+        bmi=23.5,
+        recorded_at="2026-07-01T09:00:00+00:00",
+    )
+
+    entries = list_weigh_ins_asc(conn, user_id=42)
+
+    assert len(entries) == 2
+    assert entries[0].weight_kg == 70.0
+    assert entries[1].weight_kg == 69.0
+    conn.close()
+
+
+def test_count_weigh_ins():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    assert count_weigh_ins(conn, user_id=42) == 0
+
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=72.4,
+        fat_pct=28.5,
+        muscle_pct=32.1,
+        bmi=24.8,
+        recorded_at="2026-07-01T09:00:00+00:00",
+    )
+
+    assert count_weigh_ins(conn, user_id=42) == 1
     conn.close()

@@ -59,15 +59,15 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-HIST-01  | `/історія` lists the **last 8** entries: date, weight, fat %, muscle %, BMI (compact table)     | accepted |
-| FR-HIST-02  | `/прогрес` shows the latest entry, deltas vs previous and vs start, plus trend labels          | accepted |
-| FR-HIST-03  | `/місяць` shows **current calendar month** (Europe/Kyiv): entry count, first→latest per metric   | accepted |
-| FR-HIST-04  | `/місяць` includes a **one-line** previous-month weight delta when data exists                   | accepted |
-| FR-HIST-05  | `/місяць` if only one entry in month: show values + «ще мало даних для порівняння в місяці»      | accepted |
-| FR-HIST-06  | Month baseline uses first in-month entry; if none on the 1st, **carry over** last pre-month entry as start when first in-month entry is logged | accepted |
-| FR-HIST-07  | `/весь_час` shows first→latest for all metrics, total entry count, and date of first entry     | accepted |
-| FR-HIST-08  | `/весь_час` shows **best month** by largest weight loss when ≥ 2 entries exist in that month   | accepted |
-| FR-HIST-09  | `/весь_час` omits «best month» line when insufficient data                                      | accepted |
+| FR-HIST-01  | `/історія` lists the **last 8** entries: date, weight, fat %, muscle %, BMI (compact table)     | shipped |
+| FR-HIST-02  | `/прогрес` shows the latest entry, deltas vs previous and vs start, plus trend labels          | shipped |
+| FR-HIST-03  | `/місяць` shows **current calendar month** (Europe/Kyiv): entry count, first→latest per metric   | shipped |
+| FR-HIST-04  | `/місяць` includes a **one-line** previous-month weight delta when data exists                   | shipped |
+| FR-HIST-05  | `/місяць` if only one entry in month: show values + «ще мало даних для порівняння в місяці»      | shipped |
+| FR-HIST-06  | Month baseline uses first in-month entry; if none on the 1st, **carry over** last pre-month entry as start when first in-month entry is logged | shipped |
+| FR-HIST-07  | `/весь_час` shows first→latest for all metrics, total entry count, and date of first entry     | shipped |
+| FR-HIST-08  | `/весь_час` shows **best month** by largest weight loss when ≥ 2 entries exist in that month   | shipped |
+| FR-HIST-09  | `/весь_час` omits «best month» line when insufficient data                                      | shipped |
 
 ### Trend labels (capability `trends`)
 
@@ -83,10 +83,10 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
 | FR-MSG-01   | When `display_name` is set, prefix key user messages with the name (e.g. «Оленка, …»)          | shipped |
 | FR-MSG-02   | When `display_name` is cleared in settings, use **general** messages without a name              | shipped |
-| FR-MSG-03   | After `/вага` and on `/прогрес`, append **one** supportive Ukrainian line based on **weight** Δ  | accepted |
+| FR-MSG-03   | After `/вага` and on `/прогрес`, append **one** supportive Ukrainian line based on **weight** Δ  | shipped |
 | FR-MSG-04   | Supportive copy for **коливання** and **без змін** is motivating, not blaming (see BC-TONE-01)   | shipped |
-| FR-MSG-05   | `/місяць` may append one trend-support line based on month weight change                         | accepted |
-| FR-MSG-06   | `/історія` is factual only — no supportive paragraphs                                          | accepted |
+| FR-MSG-05   | `/місяць` may append one trend-support line based on month weight change                         | shipped |
+| FR-MSG-06   | `/історія` is factual only — no supportive paragraphs                                          | shipped |
 | FR-MSG-07   | Message pool: **≥ 3 variants** per category; pick randomly to reduce repetition                | shipped |
 | FR-MSG-08   | `/допомога` lists commands and the weigh-in input format with example                            | shipped |
 
@@ -127,7 +127,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | ID           | Description                                                                                   | Status   |
 | ------------ | --------------------------------------------------------------------------------------------- | -------- |
 | NFR-I18N-01  | All user-facing bot text is **Ukrainian**                                                     | accepted |
-| NFR-TZ-01    | Calendar month and reminders use **Europe/Kyiv**                                              | accepted |
+| NFR-TZ-01    | Calendar month and reminders use **Europe/Kyiv**                                              | shipped |
 | NFR-REL-01   | Weigh-in data persists across bot restarts (durable storage)                                  | shipped |
 | NFR-TEST-01  | Pure logic (parse, compare, month stats, trend labels, messages selection) has **unit tests**  | accepted |
 | NFR-OPS-01   | Secrets (`BOT_TOKEN`, allowlist) load from environment; `.env.example` documents required vars | shipped |

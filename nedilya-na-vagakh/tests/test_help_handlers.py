@@ -28,6 +28,10 @@ async def test_dopomoga_command_lists_commands():
     assert "/вага" in reply
     assert "/скасувати" in reply
     assert "/допомога" in reply
+    assert "/прогрес" in reply
+    assert "/історія" in reply
+    assert "/місяць" in reply
+    assert "/весь_час" in reply
 
 
 @pytest.mark.asyncio

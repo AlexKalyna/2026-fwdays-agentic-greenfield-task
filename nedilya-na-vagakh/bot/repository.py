@@ -169,3 +169,25 @@ def list_weigh_ins_desc(
         (user_id, limit),
     ).fetchall()
     return [_row_to_weigh_in(row) for row in rows]
+
+
+def list_weigh_ins_asc(conn: sqlite3.Connection, user_id: int) -> list[WeighIn]:
+    rows = conn.execute(
+        """
+        SELECT * FROM weigh_ins
+        WHERE user_id = ?
+        ORDER BY recorded_at ASC, id ASC
+        """,
+        (user_id,),
+    ).fetchall()
+    return [_row_to_weigh_in(row) for row in rows]
+
+
+def count_weigh_ins(conn: sqlite3.Connection, user_id: int) -> int:
+    row = conn.execute(
+        "SELECT COUNT(*) AS count FROM weigh_ins WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+    if row is None:
+        return 0
+    return int(row["count"])
