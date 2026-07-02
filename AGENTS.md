@@ -28,21 +28,39 @@ Bot code lives under `nedilya-na-vagakh/` (see `TC-STACK-03`):
   test names when helpful (e.g. `test_parse_decimal_comma` → `FR-LOG-03`).
 - All user-facing bot text must be Ukrainian — `NFR-I18N-01`.
 - Keep tone supportive and non-judgmental — `BC-TONE-01`.
-- When a requirement is implemented and verified, update its status in
-  `docs/prd.md` from `proposed` → `accepted` → `shipped`.
+- During `/opsx:apply`, implement and verify against PRD IDs; do not mark
+  requirements `shipped` until the change is archived.
+- Status lifecycle in `docs/prd.md`: `proposed` → `accepted` → `shipped`
+  (or `dropped` if removed from scope).
+
+## OpenSpec workflow
+
+Capabilities are delivered as OpenSpec changes in the order defined in
+[`docs/capabilities.md`](docs/capabilities.md). For each capability:
+
+1. `/opsx:propose` — proposal, design, tasks, delta specs.
+2. `/opsx:apply` — implement tasks; run `pytest` from `nedilya-na-vagakh/`.
+3. `/opsx:archive` — sync delta specs (if any), move the change to
+   `openspec/changes/archive/`, then **update PRD statuses** for all
+   requirement IDs covered by that change (see the capability map in
+   `docs/capabilities.md`) from `accepted` → `shipped`.
+
+Archive only after verification passes (see below). Do not start the next
+capability until the current change is archived and PRD rows are updated.
 
 ## Verification (maker ≠ checker)
 
-After implementing a capability:
+After implementing a capability (before `/opsx:archive`):
 
 1. Run unit tests (`pytest` from `nedilya-na-vagakh/`).
-2. Map behavior back to PRD rows — confirm each `FR-*` for that capability is
-   covered by code and/or tests.
+2. Map behavior back to PRD rows — confirm each covered `FR-*` / `NFR-*` /
+   `TC-*` for that capability is implemented and covered by code and/or tests.
 3. For integration checks, exercise the bot manually or with targeted tests for
    command handlers.
 
 Do not mark requirements `shipped` without passing tests or explicit manual
-verification.
+verification. The `shipped` update belongs in the archive step, not during
+apply.
 
 ## Out of scope for v1
 

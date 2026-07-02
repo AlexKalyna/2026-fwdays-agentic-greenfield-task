@@ -153,7 +153,7 @@ For each capability, in order:
 
 1. `/opsx:propose <suggested change name>` — generate proposal, design, tasks.
 2. `/opsx:apply` — implement tasks; run `pytest` from `nedilya-na-vagakh/`.
-3. Verify each covered `FR-*` against code/tests; flip PRD statuses
-   `proposed` → `accepted` → `shipped` per the verification rules in
-   `AGENTS.md`.
-4. `/opsx:archive` — archive the change before starting the next one.
+3. `/opsx:apply` — verify each covered requirement against code/tests per
+   `AGENTS.md` (tests green, behavior mapped to PRD IDs).
+4. `/opsx:archive` — sync specs, archive the change, then flip covered PRD
+   statuses `accepted` → `shipped` before starting the next capability.

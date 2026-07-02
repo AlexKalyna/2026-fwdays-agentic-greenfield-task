@@ -117,3 +117,15 @@ def get_latest_weigh_in(
     if row is None:
         return None
     return _row_to_weigh_in(row)
+
+
+def delete_latest_weigh_in(
+    conn: sqlite3.Connection, user_id: int
+) -> WeighIn | None:
+    latest = get_latest_weigh_in(conn, user_id)
+    if latest is None:
+        return None
+
+    conn.execute("DELETE FROM weigh_ins WHERE id = ?", (latest.id,))
+    conn.commit()
+    return latest

@@ -20,7 +20,9 @@ Skip updates for question-only turns, trivial one-line replies, or when the user
 
 ## Format
 
-- **Newest first** — prepend the new entry; keep exactly **3** entries; drop the oldest.
+- **Exactly 3 entries** — the file must contain the header plus **three** `##` timestamp sections, no more. Count before finishing; if there are 4+, delete the oldest until only 3 remain.
+- **Newest first** — prepend the new entry at the top (below the intro lines); never append.
+- **Rewrite, don't patch** — when updating, replace the whole file with the header, intro, and exactly 3 entries. Do not only insert a new block at the top and leave older ones in place.
 - **Timestamp** — `YYYY-MM-DD HH:MM` in local time (or UTC if unknown); include timezone when practical.
 - **Description** — one concise sentence (two only if needed): what changed, why, and key files or PRD IDs when relevant.
 

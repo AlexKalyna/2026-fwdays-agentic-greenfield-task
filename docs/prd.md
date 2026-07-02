@@ -1,6 +1,6 @@
 # PRD — «Неділя на вагах» (Sunday Weigh-in Telegram Bot)
 
-Last updated: 2026-06-28
+Last updated: 2026-07-03
 
 This document is the **single source of truth** for what the product does and
 what constraints govern it. Every requirement has a stable ID. Specs, tests,
@@ -37,14 +37,14 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-LOG-01   | `/вага` accepts **four numbers** in one message: weight (kg), fat (%), muscle (%), BMI           | accepted |
-| FR-LOG-02   | Numbers may be separated by spaces and/or newlines; input is trimmed before parsing              | accepted |
-| FR-LOG-03   | Decimal separator **`.` and `,`** are both accepted; normalized internally                      | accepted |
-| FR-LOG-04   | On invalid input, reply in Ukrainian with a **clear example** (e.g. `72,4 28,5 32,1 24,8`)     | accepted |
-| FR-LOG-05   | `/вага` shows an input **hint** before or with the prompt (format + example)                   | accepted |
-| FR-LOG-06   | Successful log persists: `recorded_at`, weight_kg, fat_pct, muscle_pct, bmi                      | accepted |
-| FR-LOG-07   | `/скасувати` removes the **most recent** entry and confirms in Ukrainian                       | accepted |
-| FR-LOG-08   | Logging is allowed **any day**; Sunday reminder is a nudge, not a hard gate                    | accepted |
+| FR-LOG-01   | `/вага` accepts **four numbers** in one message: weight (kg), fat (%), muscle (%), BMI           | shipped |
+| FR-LOG-02   | Numbers may be separated by spaces and/or newlines; input is trimmed before parsing              | shipped |
+| FR-LOG-03   | Decimal separator **`.` and `,`** are both accepted; normalized internally                      | shipped |
+| FR-LOG-04   | On invalid input, reply in Ukrainian with a **clear example** (e.g. `72,4 28,5 32,1 24,8`)     | shipped |
+| FR-LOG-05   | `/вага` shows an input **hint** before or with the prompt (format + example)                   | shipped |
+| FR-LOG-06   | Successful log persists: `recorded_at`, weight_kg, fat_pct, muscle_pct, bmi                      | shipped |
+| FR-LOG-07   | `/скасувати` removes the **most recent** entry and confirms in Ukrainian                       | shipped |
+| FR-LOG-08   | Logging is allowed **any day**; Sunday reminder is a nudge, not a hard gate                    | shipped |
 
 ### Comparisons (capability `compare`)
 

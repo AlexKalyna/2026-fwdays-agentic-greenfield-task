@@ -6,6 +6,7 @@ from bot.repository import (
     DEFAULT_REMINDER_TIME,
     DEFAULT_REMINDER_TIMEZONE,
     DEFAULT_REMINDER_WEEKDAY,
+    delete_latest_weigh_in,
     get_latest_weigh_in,
     get_or_create_settings,
     insert_weigh_in,
@@ -90,3 +91,47 @@ def test_data_survives_restart_simulation(tmp_path: Path):
     assert latest is not None
     assert latest.weight_kg == 70.0
     reopened.close()
+
+
+def test_delete_latest_weigh_in_removes_newest():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=70.0,
+        fat_pct=27.0,
+        muscle_pct=33.0,
+        bmi=24.0,
+        recorded_at="2026-06-01T09:00:00+00:00",
+    )
+    second = insert_weigh_in(
+        conn,
+        user_id=42,
+        weight_kg=69.0,
+        fat_pct=26.0,
+        muscle_pct=34.0,
+        bmi=23.5,
+        recorded_at="2026-07-01T09:00:00+00:00",
+    )
+
+    deleted = delete_latest_weigh_in(conn, user_id=42)
+    latest = get_latest_weigh_in(conn, user_id=42)
+
+    assert deleted is not None
+    assert deleted.id == second.id
+    assert latest is not None
+    assert latest.weight_kg == 70.0
+    conn.close()
+
+
+def test_delete_latest_weigh_in_when_empty():
+    conn = connect(":memory:")
+    init_schema(conn)
+
+    deleted = delete_latest_weigh_in(conn, user_id=99)
+
+    assert deleted is None
+    conn.close()
