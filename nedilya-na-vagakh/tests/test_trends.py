@@ -22,12 +22,13 @@ def test_classify_trend_weight_increase_is_fluctuation():
 def test_classify_trend_within_threshold_is_stable():
     assert classify_trend(0.1) == TrendLabel.STABLE
     assert classify_trend(0.15) == TrendLabel.STABLE
+    assert classify_trend(0.19) == TrendLabel.STABLE
     assert classify_trend(-0.15) == TrendLabel.STABLE
 
 
-def test_classify_trend_aligns_with_one_decimal_display():
-    assert classify_trend(32.3 - 32.1, invert=True) == TrendLabel.PROGRESS
-    assert classify_trend(24.6 - 24.8) == TrendLabel.PROGRESS
+def test_classify_trend_float_subtraction_below_threshold_is_stable():
+    assert classify_trend(32.3 - 32.1, invert=True) == TrendLabel.STABLE
+    assert classify_trend(24.6 - 24.8) == TrendLabel.STABLE
 
 
 def test_classify_trend_at_threshold_boundary_is_directional():

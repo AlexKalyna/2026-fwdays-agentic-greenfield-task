@@ -6,8 +6,9 @@ from typing import Any
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.compare import build_comparison_message
+from bot.compare import build_comparison_message, compute_metric_deltas
 from bot.db import connect
+from bot.messages import pick_support_line
 from bot.models import WeighIn
 from bot.parse import ParseError, format_uk_decimal, parse_weigh_in
 from bot.repository import (
@@ -18,6 +19,7 @@ from bot.repository import (
     get_or_create_settings,
     insert_weigh_in,
 )
+from bot.trends import classify_trend
 
 AWAITING_WEIGH_IN_KEY = "awaiting_weigh_in"
 
@@ -82,7 +84,7 @@ async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     inserted: WeighIn | None = None
     previous: WeighIn | None = None
     try:
-        get_or_create_settings(conn, user.id)
+        settings = get_or_create_settings(conn, user.id)
         previous = get_latest_weigh_in(conn, user.id)
         inserted = insert_weigh_in(
             conn,
@@ -112,6 +114,14 @@ async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 entry_count=entry_count,
             )
             success_reply = f"{factual}\n\n{comparison}"
+            if previous is not None and inserted is not None:
+                deltas = compute_metric_deltas(inserted, previous)
+                weight_trend = classify_trend(deltas.weight_kg)
+                support = pick_support_line(
+                    weight_trend,
+                    display_name=settings.display_name,
+                )
+                success_reply = f"{success_reply}\n\n{support}"
         except (RepositoryError, sqlite3.Error):
             success_reply = factual
     finally:

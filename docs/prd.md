@@ -73,22 +73,22 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-TREND-01 | Weight, fat %, BMI: decrease → label **прогрес**; increase → **коливання**; \|Δ\| < threshold → **без змін** | accepted |
-| FR-TREND-02 | Muscle %: increase → **прогрес**; decrease → **коливання**; \|Δ\| < threshold → **без змін**   | accepted |
-| FR-TREND-03 | Stable threshold: **0.2** in the metric’s unit (kg or percentage points) unless changed in code  | accepted |
+| FR-TREND-01 | Weight, fat %, BMI: decrease → label **прогрес**; increase → **коливання**; \|Δ\| < threshold → **без змін** | shipped |
+| FR-TREND-02 | Muscle %: increase → **прогрес**; decrease → **коливання**; \|Δ\| < threshold → **без змін**   | shipped |
+| FR-TREND-03 | Stable threshold: **0.2** in the metric’s unit (kg or percentage points) unless changed in code  | shipped |
 
 ### Messaging & personalization (capability `messaging`)
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-MSG-01   | When `display_name` is set, prefix key user messages with the name (e.g. «Оленка, …»)          | accepted |
-| FR-MSG-02   | When `display_name` is cleared in settings, use **general** messages without a name              | accepted |
+| FR-MSG-01   | When `display_name` is set, prefix key user messages with the name (e.g. «Оленка, …»)          | shipped |
+| FR-MSG-02   | When `display_name` is cleared in settings, use **general** messages without a name              | shipped |
 | FR-MSG-03   | After `/вага` and on `/прогрес`, append **one** supportive Ukrainian line based on **weight** Δ  | accepted |
-| FR-MSG-04   | Supportive copy for **коливання** and **без змін** is motivating, not blaming (see BC-TONE-01)   | accepted |
+| FR-MSG-04   | Supportive copy for **коливання** and **без змін** is motivating, not blaming (see BC-TONE-01)   | shipped |
 | FR-MSG-05   | `/місяць` may append one trend-support line based on month weight change                         | accepted |
 | FR-MSG-06   | `/історія` is factual only — no supportive paragraphs                                          | accepted |
-| FR-MSG-07   | Message pool: **≥ 3 variants** per category; pick randomly to reduce repetition                | accepted |
-| FR-MSG-08   | `/допомога` lists commands and the weigh-in input format with example                            | accepted |
+| FR-MSG-07   | Message pool: **≥ 3 variants** per category; pick randomly to reduce repetition                | shipped |
+| FR-MSG-08   | `/допомога` lists commands and the weigh-in input format with example                            | shipped |
 
 ### Reminders (capability `reminders`)
 

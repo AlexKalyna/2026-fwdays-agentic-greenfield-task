@@ -13,17 +13,12 @@ class TrendLabel(StrEnum):
     STABLE = "без змін"
 
 
-def _display_delta(delta: float) -> float:
-    return float(f"{delta:.1f}")
-
-
 def classify_trend(delta: float, *, invert: bool = False) -> TrendLabel:
-    displayed = _display_delta(delta)
-    if abs(displayed) < STABLE_THRESHOLD:
+    if abs(delta) < STABLE_THRESHOLD:
         return TrendLabel.STABLE
     if invert:
-        return TrendLabel.PROGRESS if displayed > 0 else TrendLabel.FLUCTUATION
-    return TrendLabel.PROGRESS if displayed < 0 else TrendLabel.FLUCTUATION
+        return TrendLabel.PROGRESS if delta > 0 else TrendLabel.FLUCTUATION
+    return TrendLabel.PROGRESS if delta < 0 else TrendLabel.FLUCTUATION
 
 
 def classify_metric_deltas(deltas: MetricDeltas) -> dict[str, TrendLabel]:

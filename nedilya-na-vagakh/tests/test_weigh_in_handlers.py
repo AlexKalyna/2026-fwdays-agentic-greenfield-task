@@ -15,6 +15,7 @@ from bot.handlers.weigh_in import (
     vaga_command,
     weigh_in_message,
 )
+from bot.messages import PROGRESS_LINES
 from bot.repository import (
     RepositoryError,
     get_latest_weigh_in,
@@ -72,6 +73,7 @@ async def test_weigh_in_message_persists_valid_input(tmp_path):
     reply = update.effective_message.reply_text.await_args.args[0]
     assert "Записано" in reply
     assert "Стартова точка" in reply
+    assert "Оленка," not in reply
 
 
 @pytest.mark.asyncio
@@ -102,9 +104,11 @@ async def test_weigh_in_message_second_entry_includes_deltas(tmp_path):
     assert "Порівняно з попереднім:" in reply
     assert "вага −0,6 кг — прогрес," in reply
     assert "жир −0,3 % — прогрес," in reply
-    assert "м'язи +0,2 % — прогрес," in reply
-    assert "BMI −0,2 — прогрес" in reply
+    assert "м'язи +0,2 % — без змін," in reply
+    assert "BMI −0,2 — без змін" in reply
     assert "Від старту: −0,6 кг" in reply
+    assert "Оленка," in reply
+    assert any(line in reply for line in PROGRESS_LINES)
 
 
 @pytest.mark.asyncio

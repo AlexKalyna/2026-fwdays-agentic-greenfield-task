@@ -7,6 +7,7 @@ from telegram.ext import Application, MessageHandler, TypeHandler, filters
 
 from bot.config import Config, load_config
 from bot.db import connect, init_schema
+from bot.handlers.help import dopomoga_command
 from bot.handlers.weigh_in import (
     skasuvaty_command,
     vaga_command,
@@ -16,6 +17,7 @@ from bot.middleware import allowlist_gate
 
 VAGA_COMMAND = filters.Regex(r"^/вага(?:@\w+)?$")
 SKASUVATY_COMMAND = filters.Regex(r"^/скасувати(?:@\w+)?$")
+DOPOMOGA_COMMAND = filters.Regex(r"^/допомога(?:@\w+)?$")
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -39,6 +41,7 @@ def build_application(config: Config) -> Application:
     application.add_handler(
         MessageHandler(SKASUVATY_COMMAND, skasuvaty_command), group=0
     )
+    application.add_handler(MessageHandler(DOPOMOGA_COMMAND, dopomoga_command), group=0)
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, weigh_in_message, block=False),
         group=0,

@@ -97,8 +97,8 @@ def test_build_comparison_message_second_entry():
     assert "Порівняно з попереднім:" in message
     assert "вага −0,6 кг — прогрес," in message
     assert "жир −0,3 % — прогрес," in message
-    assert "м'язи +0,2 % — прогрес," in message
-    assert "BMI −0,2 — прогрес" in message
+    assert "м'язи +0,2 % — без змін," in message
+    assert "BMI −0,2 — без змін" in message
     assert "Від старту: −0,6 кг" in message
     assert "Від старту:" in message
     assert "прогрес" not in message.split("Від старту:")[1]
