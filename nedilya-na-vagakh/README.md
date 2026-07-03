@@ -65,3 +65,7 @@ All `make` targets use `.venv/bin/python` when present, otherwise `python3.11`.
 
 GitHub Actions (`.github/workflows/ci.yml`) runs the same checks on Python 3.11 and
 3.12 for every push and pull request.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

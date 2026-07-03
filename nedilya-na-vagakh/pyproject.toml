@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Private Ukrainian Telegram bot for body-composition weigh-in tracking"
 readme = "README.md"
 requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Oleksandr Kalyna", email = "oleksandrkalyna@yahoo.com" }]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
