@@ -38,3 +38,13 @@ The system SHALL provide a config module that parses `BOT_TOKEN`, `ALLOWED_USER_
 
 - **WHEN** `ALLOWED_USER_IDS` contains non-numeric values
 - **THEN** startup fails with a clear configuration error
+
+### Requirement: Reminder jobs scheduled at startup
+
+After the application is built, the bot SHALL register Sunday reminder `JobQueue` jobs for all
+eligible users. (FR-REM-01)
+
+#### Scenario: Startup schedules reminders
+
+- **WHEN** `build_application` completes and `post_init` runs
+- **THEN** reminder jobs are registered for allowlisted users with completed setup

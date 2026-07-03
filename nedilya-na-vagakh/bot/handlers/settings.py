@@ -10,6 +10,7 @@ from bot.db import connect
 from bot.handlers.weigh_in import AWAITING_WEIGH_IN_KEY
 from bot.models import UserSettings
 from bot.name_validation import NameValidationError, validate_display_name
+from bot.reminder_scheduler import schedule_user_reminder_if_eligible
 from bot.reminder_time import ReminderTimeError, parse_reminder_time
 from bot.repository import (
     RepositoryError,
@@ -196,11 +197,17 @@ async def settings_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 return
 
             try:
-                update_reminder_time(conn, user.id, reminder_time)
+                settings = update_reminder_time(conn, user.id, reminder_time)
             except (RepositoryError, sqlite3.Error):
                 await message.reply_text(SAVE_ERROR_MESSAGE)
                 _clear_settings_await(context)
                 return
+
+            schedule_user_reminder_if_eligible(
+                context.application.job_queue,
+                settings,
+                allowed_user_ids=context.bot_data.get("allowed_user_ids"),
+            )
 
             _clear_settings_await(context)
             await message.reply_text(TIME_SAVED_MESSAGE.format(time=reminder_time))

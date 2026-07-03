@@ -38,6 +38,7 @@ from bot.handlers.weigh_in import (
     weigh_in_message,
 )
 from bot.middleware import allowlist_gate
+from bot.reminder_scheduler import schedule_all_reminders
 
 VAGA_COMMAND = filters.Regex(r"^/вага(?:@\w+)?$")
 START_COMMAND = filters.Regex(r"^/start(?:@\w+)?$")
@@ -56,12 +57,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+async def _schedule_reminders_on_startup(application: Application) -> None:
+    schedule_all_reminders(
+        application.job_queue,
+        database_path=application.bot_data["database_path"],
+        allowed_user_ids=application.bot_data["allowed_user_ids"],
+    )
+
+
 def build_application(config: Config) -> Application:
     conn = connect(config.database_path)
     init_schema(conn)
     conn.close()
 
-    application = Application.builder().token(config.bot_token).build()
+    application = (
+        Application.builder()
+        .token(config.bot_token)
+        .post_init(_schedule_reminders_on_startup)
+        .build()
+    )
     application.bot_data["allowed_user_ids"] = config.allowed_user_ids
     application.bot_data["database_path"] = config.database_path
 

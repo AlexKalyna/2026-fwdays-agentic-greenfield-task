@@ -235,6 +235,13 @@ def update_reminder_time(
     return _row_to_settings(row)
 
 
+def list_completed_user_settings(conn: sqlite3.Connection) -> list[UserSettings]:
+    rows = conn.execute(
+        "SELECT * FROM user_settings WHERE setup_completed_at IS NOT NULL"
+    ).fetchall()
+    return [_row_to_settings(row) for row in rows]
+
+
 def complete_onboarding(
     conn: sqlite3.Connection,
     telegram_user_id: int,

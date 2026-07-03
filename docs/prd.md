@@ -94,9 +94,9 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-REM-01   | Send a Sunday reminder at the user’s configured local time (default `09:00`)                   | accepted |
-| FR-REM-02   | Reminder timezone is **Europe/Kyiv** in v1                                                       | accepted |
-| FR-REM-03   | Reminder text uses display name when set; nudges user to `/вага`                                | accepted |
+| FR-REM-01   | Send a Sunday reminder at the user’s configured local time (default `09:00`)                   | shipped |
+| FR-REM-02   | Reminder timezone is **Europe/Kyiv** in v1                                                       | shipped |
+| FR-REM-03   | Reminder text uses display name when set; nudges user to `/вага`                                | shipped |
 
 ### Settings (capability `settings`)
 
