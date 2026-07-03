@@ -106,19 +106,21 @@ def build_application(config: Config) -> Application:
         CallbackQueryHandler(onboarding_callback, pattern=ONBOARDING_CALLBACK_PATTERN),
         group=0,
     )
+    # Each state-driven text flow lives in its own group because PTB runs at
+    # most one handler per group. Sharing a group would let the first matching
+    # handler swallow the update; separate groups let every flow inspect the
+    # message and self-guard on its own user_data state.
     application.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND, onboarding_message, block=False
-        ),
-        group=0,
+        MessageHandler(filters.TEXT & ~filters.COMMAND, onboarding_message),
+        group=1,
     )
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, settings_message, block=False),
-        group=0,
+        MessageHandler(filters.TEXT & ~filters.COMMAND, settings_message),
+        group=2,
     )
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, weigh_in_message, block=False),
-        group=0,
+        MessageHandler(filters.TEXT & ~filters.COMMAND, weigh_in_message),
+        group=3,
     )
 
     return application

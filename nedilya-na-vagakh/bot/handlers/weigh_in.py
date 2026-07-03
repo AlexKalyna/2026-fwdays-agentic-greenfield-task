@@ -11,6 +11,7 @@ from bot.db import connect
 from bot.messages import pick_support_line
 from bot.models import WeighIn
 from bot.parse import ParseError, format_uk_decimal, parse_weigh_in
+from bot.reminder_scheduler import schedule_user_reminder_if_eligible
 from bot.repository import (
     RepositoryError,
     complete_onboarding,
@@ -73,15 +74,27 @@ async def _complete_onboarding_if_active(
 
     database_path = context.bot_data["database_path"]
     conn = connect(database_path)
+    newly_completed: bool = False
+    settings = None
     try:
         settings = get_or_create_settings(conn, user.id)
         if settings.setup_completed_at is None:
-            complete_onboarding(conn, user.id, reminder_time=settings.reminder_time)
+            settings = complete_onboarding(
+                conn, user.id, reminder_time=settings.reminder_time
+            )
+            newly_completed = True
     except (RepositoryError, sqlite3.Error):
         await message.reply_text(SETUP_SAVE_ERROR_MESSAGE)
         return False
     finally:
         conn.close()
+
+    if newly_completed and settings is not None:
+        schedule_user_reminder_if_eligible(
+            context.application.job_queue,
+            settings,
+            allowed_user_ids=context.bot_data.get("allowed_user_ids"),
+        )
 
     user_data.pop(ONBOARDING_STEP_KEY, None)
     return True

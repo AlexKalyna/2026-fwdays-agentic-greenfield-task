@@ -14,6 +14,7 @@ from bot.handlers.settings import (
     TIME_PROMPT_MESSAGE,
 )
 from bot.handlers.weigh_in import AWAITING_WEIGH_IN_KEY, HINT_MESSAGE
+from bot.reminder_scheduler import schedule_user_reminder_if_eligible
 from bot.reminder_time import ReminderTimeError, parse_reminder_time
 from bot.repository import (
     RepositoryError,
@@ -198,13 +199,20 @@ async def onboarding_callback(
         conn = connect(database_path)
         try:
             settings = get_or_create_settings(conn, user.id)
-            complete_onboarding(conn, user.id, reminder_time=settings.reminder_time)
+            settings = complete_onboarding(
+                conn, user.id, reminder_time=settings.reminder_time
+            )
         except (RepositoryError, sqlite3.Error):
             await query.message.reply_text(SAVE_ERROR_MESSAGE)
             return
         finally:
             conn.close()
 
+        schedule_user_reminder_if_eligible(
+            context.application.job_queue,
+            settings,
+            allowed_user_ids=context.bot_data.get("allowed_user_ids"),
+        )
         _clear_onboarding(context)
 
         if data == CALLBACK_WEIGH_IN_LATER:
