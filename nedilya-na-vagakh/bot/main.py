@@ -11,6 +11,7 @@ from telegram.ext import (
     filters,
 )
 
+from bot.commands import BOT_COMMANDS, COMMAND_SPECS, command_spec_filter
 from bot.config import Config, load_config
 from bot.db import connect, init_schema
 from bot.handlers.help import dopomoga_command
@@ -40,24 +41,34 @@ from bot.handlers.weigh_in import (
 from bot.middleware import allowlist_gate
 from bot.reminder_scheduler import schedule_all_reminders
 
-VAGA_COMMAND = filters.Regex(r"^/вага(?:@\w+)?$")
-START_COMMAND = filters.Regex(r"^/start(?:@\w+)?$")
-SKASUVATY_COMMAND = filters.Regex(r"^/скасувати(?:@\w+)?$")
-DOPOMOGA_COMMAND = filters.Regex(r"^/допомога(?:@\w+)?$")
-ISTORIYA_COMMAND = filters.Regex(r"^/історія(?:@\w+)?$")
-PROGRES_COMMAND = filters.Regex(r"^/прогрес(?:@\w+)?$")
-MISYATS_COMMAND = filters.Regex(r"^/місяць(?:@\w+)?$")
-VES_CHAS_COMMAND = filters.Regex(r"^/весь_час(?:@\w+)?$")
-NALASHTUVANNYA_COMMAND = filters.Regex(r"^/налаштування(?:@\w+)?$")
-
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
 
+_COMMAND_HANDLERS = {
+    "start": start_command,
+    "вага": vaga_command,
+    "прогрес": progres_command,
+    "історія": istoriya_command,
+    "місяць": misyats_command,
+    "весь_час": ves_chas_command,
+    "налаштування": nalashtuvannya_command,
+    "скасувати": skasuvaty_command,
+    "допомога": dopomoga_command,
+}
 
-async def _schedule_reminders_on_startup(application: Application) -> None:
+
+async def _register_command_menu(application: Application) -> None:
+    try:
+        await application.bot.set_my_commands(BOT_COMMANDS)
+    except Exception:
+        logger.exception("Failed to register Telegram command menu")
+
+
+async def _on_application_init(application: Application) -> None:
+    await _register_command_menu(application)
     schedule_all_reminders(
         application.job_queue,
         database_path=application.bot_data["database_path"],
@@ -73,7 +84,7 @@ def build_application(config: Config) -> Application:
     application = (
         Application.builder()
         .token(config.bot_token)
-        .post_init(_schedule_reminders_on_startup)
+        .post_init(_on_application_init)
         .build()
     )
     application.bot_data["allowed_user_ids"] = config.allowed_user_ids
@@ -81,19 +92,12 @@ def build_application(config: Config) -> Application:
 
     application.add_handler(TypeHandler(Update, allowlist_gate), group=-1)
 
-    application.add_handler(MessageHandler(VAGA_COMMAND, vaga_command), group=0)
-    application.add_handler(MessageHandler(START_COMMAND, start_command), group=0)
-    application.add_handler(
-        MessageHandler(SKASUVATY_COMMAND, skasuvaty_command), group=0
-    )
-    application.add_handler(MessageHandler(DOPOMOGA_COMMAND, dopomoga_command), group=0)
-    application.add_handler(MessageHandler(ISTORIYA_COMMAND, istoriya_command), group=0)
-    application.add_handler(MessageHandler(PROGRES_COMMAND, progres_command), group=0)
-    application.add_handler(MessageHandler(MISYATS_COMMAND, misyats_command), group=0)
-    application.add_handler(MessageHandler(VES_CHAS_COMMAND, ves_chas_command), group=0)
-    application.add_handler(
-        MessageHandler(NALASHTUVANNYA_COMMAND, nalashtuvannya_command), group=0
-    )
+    for spec in COMMAND_SPECS:
+        handler = _COMMAND_HANDLERS[spec.handler_name]
+        application.add_handler(
+            MessageHandler(command_spec_filter(spec), handler),
+            group=0,
+        )
     application.add_handler(
         CallbackQueryHandler(settings_callback, pattern=SETTINGS_CALLBACK_PATTERN),
         group=0,

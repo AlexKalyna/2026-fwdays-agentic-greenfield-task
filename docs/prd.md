@@ -117,7 +117,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-CMD-01   | Bot implements: `/start`, `/вага`, `/прогрес`, `/історія`, `/місяць`, `/весь_час`, `/налаштування`, `/скасувати`, `/допомога` | accepted |
+| FR-CMD-01   | Bot implements: `/start`, `/вага`, `/прогрес`, `/історія`, `/місяць`, `/весь_час`, `/налаштування`, `/скасувати`, `/допомога` | shipped |
 | FR-CMD-02   | Completed onboarding: `/start` shows short help instead of re-running setup                      | shipped |
 
 ---
