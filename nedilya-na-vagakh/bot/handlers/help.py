@@ -20,5 +20,8 @@ HELP_MESSAGE = (
 
 
 async def dopomoga_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if context.user_data is not None:
+        context.user_data["awaiting_weigh_in"] = False
+        context.user_data.pop("settings_awaiting", None)
     if update.effective_message is not None:
         await update.effective_message.reply_text(HELP_MESSAGE)

@@ -39,7 +39,10 @@ BOT_COMMANDS: list[BotCommand] = [
 
 def command_filter(*command_names: str) -> filters.Regex:
     alternatives = "|".join(re.escape(name) for name in command_names)
-    return filters.Regex(rf"^/(?:{alternatives})(?:@\w+)?$")
+    # Allow optional trailing arguments after the command (e.g. inline weigh-in
+    # via "/вага 72,4 28,5 32,1 24,8"). The lookahead keeps a word boundary so
+    # "/ваганнячко" does not match "/вага".
+    return filters.Regex(rf"^/(?:{alternatives})(?:@\w+)?(?=\s|$)[\s\S]*$")
 
 
 def command_spec_filter(spec: CommandSpec) -> filters.Regex:

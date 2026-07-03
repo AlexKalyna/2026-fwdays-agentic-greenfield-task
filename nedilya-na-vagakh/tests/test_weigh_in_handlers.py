@@ -8,6 +8,7 @@ from bot.handlers.weigh_in import (
     AWAITING_WEIGH_IN_KEY,
     HINT_MESSAGE,
     INVALID_MESSAGE,
+    RANGE_MESSAGE,
     SAVE_ERROR_MESSAGE,
     UNDO_EMPTY_MESSAGE,
     UNDO_OK_MESSAGE,
@@ -227,6 +228,108 @@ async def test_weigh_in_message_invalid_input():
     update.effective_message.reply_text.assert_awaited_once_with(
         INVALID_MESSAGE, parse_mode="Markdown"
     )
+
+
+@pytest.mark.asyncio
+async def test_weigh_in_message_out_of_range_input():
+    update = _make_message_update(42, "500 28,5 32,1 24,8")
+    context = MagicMock()
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True}
+    context.bot_data = {"database_path": ":memory:"}
+
+    await weigh_in_message(update, context)
+
+    assert context.user_data[AWAITING_WEIGH_IN_KEY] is False
+    update.effective_message.reply_text.assert_awaited_once_with(
+        RANGE_MESSAGE, parse_mode="Markdown"
+    )
+
+
+@pytest.mark.asyncio
+async def test_vaga_command_inline_persists(tmp_path):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    conn.close()
+
+    update = _make_message_update(42, "/вага 72,4 28,5 32,1 24,8")
+    context = MagicMock()
+    context.user_data = {}
+    context.bot_data = {"database_path": db_path, "allowed_user_ids": frozenset({42})}
+
+    await vaga_command(update, context)
+
+    conn = connect(db_path)
+    latest = get_latest_weigh_in(conn, user_id=42)
+    conn.close()
+
+    assert latest is not None
+    assert latest.weight_kg == 72.4
+    assert context.user_data[AWAITING_WEIGH_IN_KEY] is False
+    reply = update.effective_message.reply_text.await_args.args[0]
+    assert "Записано" in reply
+
+
+@pytest.mark.asyncio
+async def test_vaga_command_inline_out_of_range_does_not_persist(tmp_path):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    conn.close()
+
+    update = _make_message_update(42, "/вага 500 28,5 32,1 24,8")
+    context = MagicMock()
+    context.user_data = {}
+    context.bot_data = {"database_path": db_path}
+
+    await vaga_command(update, context)
+
+    conn = connect(db_path)
+    latest = get_latest_weigh_in(conn, user_id=42)
+    conn.close()
+
+    assert latest is None
+    update.effective_message.reply_text.assert_awaited_once_with(
+        RANGE_MESSAGE, parse_mode="Markdown"
+    )
+
+
+@pytest.mark.asyncio
+async def test_vaga_command_without_args_arms_and_hints():
+    update = _make_message_update(42, "/вага")
+    context = MagicMock()
+    context.user_data = {}
+
+    await vaga_command(update, context)
+
+    assert context.user_data[AWAITING_WEIGH_IN_KEY] is True
+    update.effective_message.reply_text.assert_awaited_once_with(
+        HINT_MESSAGE, parse_mode="Markdown"
+    )
+
+
+@pytest.mark.asyncio
+async def test_first_log_completes_onboarding_and_schedules(tmp_path):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)  # setup_completed_at is None
+    conn.close()
+
+    update = _make_message_update(42, "72,4 28,5 32,1 24,8")
+    context = MagicMock()
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True}
+    context.bot_data = {"database_path": db_path, "allowed_user_ids": frozenset({42})}
+    context.application.job_queue.get_jobs_by_name.return_value = []
+
+    await weigh_in_message(update, context)
+
+    conn = connect(db_path)
+    settings = get_or_create_settings(conn, telegram_user_id=42)
+    conn.close()
+
+    assert settings.setup_completed_at is not None
+    context.application.job_queue.run_daily.assert_called_once()
 
 
 @pytest.mark.asyncio

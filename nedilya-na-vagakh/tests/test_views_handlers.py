@@ -5,12 +5,14 @@ import pytest
 from telegram import Chat, Message, Update, User
 
 from bot.db import connect, init_schema
+from bot.handlers.settings import SETTINGS_AWAITING_KEY
 from bot.handlers.views import (
     istoriya_command,
     misyats_command,
     progres_command,
     ves_chas_command,
 )
+from bot.handlers.weigh_in import AWAITING_WEIGH_IN_KEY
 from bot.messages import ALL_SUPPORT_LINES, PROGRESS_LINES
 from bot.month_stats import KYIV_TZ
 from bot.repository import get_or_create_settings, insert_weigh_in
@@ -53,6 +55,25 @@ def _seed_entries(conn, user_id: int = 42) -> None:
         bmi=24.6,
         recorded_at="2026-07-01T09:00:00+00:00",
     )
+
+
+@pytest.mark.asyncio
+async def test_view_command_clears_stale_prompt_flags(tmp_path):
+    db_path = str(tmp_path / "bot.db")
+    conn = connect(db_path)
+    init_schema(conn)
+    _seed_entries(conn)
+    conn.close()
+
+    update = _make_message_update(42, "/історія")
+    context = MagicMock()
+    context.bot_data = {"database_path": db_path}
+    context.user_data = {AWAITING_WEIGH_IN_KEY: True, SETTINGS_AWAITING_KEY: "name"}
+
+    await istoriya_command(update, context)
+
+    assert context.user_data[AWAITING_WEIGH_IN_KEY] is False
+    assert SETTINGS_AWAITING_KEY not in context.user_data
 
 
 @pytest.mark.asyncio

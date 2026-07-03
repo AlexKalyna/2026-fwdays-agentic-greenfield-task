@@ -73,6 +73,19 @@ def test_command_filter_matches_bot_username_suffix():
     assert pattern.match("/vaga@MyBot")
 
 
+def test_command_filter_matches_inline_arguments():
+    pattern = command_filter("вага", "vaga").pattern
+    assert pattern.match("/вага 72,4 28,5 32,1 24,8")
+    assert pattern.match("/вага\n72,4 28,5 32,1 24,8")
+    assert pattern.match("/вага@MyBot 72,4 28,5 32,1 24,8")
+
+
+def test_command_filter_keeps_word_boundary():
+    pattern = command_filter("вага", "vaga").pattern
+    assert pattern.match("/ваганнячко") is None
+    assert pattern.match("/vagabond") is None
+
+
 def test_build_application_registers_post_init_hook():
     config = Config(
         bot_token="test-token",

@@ -46,3 +46,15 @@ async def test_dopomoga_command_includes_weigh_in_format():
     reply = update.effective_message.reply_text.await_args.args[0]
     assert "72,4 28,5 32,1 24,8" in reply
     assert "вага" in reply.lower() or "вага (кг)" in reply
+
+
+@pytest.mark.asyncio
+async def test_dopomoga_command_clears_stale_prompt_flags():
+    update = _make_message_update(42, "/допомога")
+    context = MagicMock()
+    context.user_data = {"awaiting_weigh_in": True, "settings_awaiting": "name"}
+
+    await dopomoga_command(update, context)
+
+    assert context.user_data["awaiting_weigh_in"] is False
+    assert "settings_awaiting" not in context.user_data

@@ -6,6 +6,8 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from bot.db import connect
+from bot.handlers.settings import SETTINGS_AWAITING_KEY
+from bot.handlers.weigh_in import AWAITING_WEIGH_IN_KEY
 from bot.month_stats import (
     KYIV_TZ,
     find_best_month,
@@ -33,11 +35,22 @@ from bot.view_format import (
 HISTORY_LIMIT = 8
 
 
+def _reset_transient_flows(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Clear single-shot prompt state so a read command doesn't leave a stale
+    weigh-in/settings prompt that swallows the user's next message."""
+    if context.user_data is None:
+        return
+    context.user_data[AWAITING_WEIGH_IN_KEY] = False
+    context.user_data.pop(SETTINGS_AWAITING_KEY, None)
+
+
 async def istoriya_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.effective_message
     user = update.effective_user
     if message is None or user is None:
         return
+
+    _reset_transient_flows(context)
 
     database_path = context.bot_data["database_path"]
     conn = connect(database_path)
@@ -61,6 +74,8 @@ async def progres_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     user = update.effective_user
     if message is None or user is None:
         return
+
+    _reset_transient_flows(context)
 
     database_path = context.bot_data["database_path"]
     conn = connect(database_path)
@@ -93,6 +108,8 @@ async def misyats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     user = update.effective_user
     if message is None or user is None:
         return
+
+    _reset_transient_flows(context)
 
     now_kyiv = datetime.now(KYIV_TZ)
     database_path = context.bot_data["database_path"]
@@ -131,6 +148,8 @@ async def ves_chas_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user = update.effective_user
     if message is None or user is None:
         return
+
+    _reset_transient_flows(context)
 
     database_path = context.bot_data["database_path"]
     conn = connect(database_path)
