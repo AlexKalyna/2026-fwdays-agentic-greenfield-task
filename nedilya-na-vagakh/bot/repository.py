@@ -233,3 +233,34 @@ def update_reminder_time(
             f"user_settings row missing after update for user {telegram_user_id}"
         )
     return _row_to_settings(row)
+
+
+def complete_onboarding(
+    conn: sqlite3.Connection,
+    telegram_user_id: int,
+    *,
+    reminder_time: str,
+    display_name: str = DEFAULT_DISPLAY_NAME,
+    completed_at: str | None = None,
+) -> UserSettings:
+    get_or_create_settings(conn, telegram_user_id)
+    timestamp = completed_at or datetime.now(UTC).isoformat()
+    conn.execute(
+        """
+        UPDATE user_settings
+        SET reminder_time = ?, display_name = ?, setup_completed_at = ?
+        WHERE telegram_user_id = ?
+        """,
+        (reminder_time, display_name, timestamp, telegram_user_id),
+    )
+    conn.commit()
+
+    row = conn.execute(
+        "SELECT * FROM user_settings WHERE telegram_user_id = ?",
+        (telegram_user_id,),
+    ).fetchone()
+    if row is None:
+        raise RepositoryError(
+            f"user_settings row missing after onboarding for user {telegram_user_id}"
+        )
+    return _row_to_settings(row)

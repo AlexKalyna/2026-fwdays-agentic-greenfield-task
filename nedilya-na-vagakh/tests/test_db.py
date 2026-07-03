@@ -6,6 +6,7 @@ from bot.repository import (
     DEFAULT_REMINDER_TIME,
     DEFAULT_REMINDER_TIMEZONE,
     DEFAULT_REMINDER_WEEKDAY,
+    complete_onboarding,
     count_weigh_ins,
     delete_latest_weigh_in,
     get_first_weigh_in,
@@ -332,4 +333,26 @@ def test_update_reminder_time_persists_new_value():
     refreshed = get_or_create_settings(conn, telegram_user_id=42)
     assert refreshed.reminder_time == "10:30"
     assert refreshed.reminder_timezone == DEFAULT_REMINDER_TIMEZONE
+    conn.close()
+
+
+def test_complete_onboarding_sets_defaults_and_timestamp():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    completed = complete_onboarding(
+        conn,
+        telegram_user_id=42,
+        reminder_time="08:30",
+        completed_at="2026-07-03T07:00:00+00:00",
+    )
+
+    assert completed.display_name == DEFAULT_DISPLAY_NAME
+    assert completed.reminder_time == "08:30"
+    assert completed.reminder_timezone == DEFAULT_REMINDER_TIMEZONE
+    assert completed.setup_completed_at == "2026-07-03T07:00:00+00:00"
+
+    refreshed = get_or_create_settings(conn, telegram_user_id=42)
+    assert refreshed.setup_completed_at == "2026-07-03T07:00:00+00:00"
     conn.close()

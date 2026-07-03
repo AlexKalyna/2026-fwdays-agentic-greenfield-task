@@ -25,6 +25,7 @@ async def test_dopomoga_command_lists_commands():
 
     update.effective_message.reply_text.assert_awaited_once_with(HELP_MESSAGE)
     reply = update.effective_message.reply_text.await_args.args[0]
+    assert "/start" in reply
     assert "/вага" in reply
     assert "/скасувати" in reply
     assert "/допомога" in reply

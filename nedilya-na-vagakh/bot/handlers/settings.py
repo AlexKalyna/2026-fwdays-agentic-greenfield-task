@@ -20,6 +20,7 @@ from bot.repository import (
 
 SETTINGS_AWAITING_KEY = "settings_awaiting"
 SETTINGS_CALLBACK_PATTERN = r"^settings:"
+ONBOARDING_STEP_KEY = "onboarding_step"
 
 CALLBACK_CHANGE_NAME = "settings:change_name"
 CALLBACK_CLEAR_NAME = "settings:clear_name"
@@ -48,6 +49,10 @@ def _user_data(context: ContextTypes.DEFAULT_TYPE) -> dict[str, Any]:
 
 def _clear_settings_await(context: ContextTypes.DEFAULT_TYPE) -> None:
     _user_data(context).pop(SETTINGS_AWAITING_KEY, None)
+
+
+def _clear_onboarding_await(context: ContextTypes.DEFAULT_TYPE) -> None:
+    _user_data(context).pop(ONBOARDING_STEP_KEY, None)
 
 
 def format_settings_summary(settings: UserSettings) -> str:
@@ -102,6 +107,7 @@ async def nalashtuvannya_command(
 
     _user_data(context)[AWAITING_WEIGH_IN_KEY] = False
     _clear_settings_await(context)
+    _clear_onboarding_await(context)
     await _reply_settings_menu(update, context, user.id)
 
 
@@ -113,6 +119,7 @@ async def settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     await query.answer()
     _user_data(context)[AWAITING_WEIGH_IN_KEY] = False
+    _clear_onboarding_await(context)
 
     if query.data == CALLBACK_CHANGE_NAME:
         _user_data(context)[SETTINGS_AWAITING_KEY] = "name"
@@ -144,6 +151,9 @@ async def settings_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 async def settings_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if _user_data(context).get("onboarding_step") == "custom_time":
+        return
+
     awaiting = _user_data(context).get(SETTINGS_AWAITING_KEY)
     if not awaiting:
         return

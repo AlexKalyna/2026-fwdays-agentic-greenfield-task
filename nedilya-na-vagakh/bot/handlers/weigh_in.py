@@ -13,6 +13,7 @@ from bot.models import WeighIn
 from bot.parse import ParseError, format_uk_decimal, parse_weigh_in
 from bot.repository import (
     RepositoryError,
+    complete_onboarding,
     delete_latest_weigh_in,
     get_first_weigh_in,
     get_latest_weigh_in,
@@ -22,6 +23,7 @@ from bot.repository import (
 from bot.trends import classify_trend
 
 AWAITING_WEIGH_IN_KEY = "awaiting_weigh_in"
+ONBOARDING_STEP_KEY = "onboarding_step"
 
 HINT_MESSAGE = (
     "Надішли чотири числа: вага (кг), жир (%), м'язи (%), BMI.\n"
@@ -34,6 +36,9 @@ INVALID_MESSAGE = (
 UNDO_OK_MESSAGE = "Останній запис скасовано."
 UNDO_EMPTY_MESSAGE = "Немає записів для скасування."
 SAVE_ERROR_MESSAGE = "Не вдалося зберегти запис. Спробуй ще раз через /вага."
+SETUP_SAVE_ERROR_MESSAGE = (
+    "Не вдалося завершити налаштування. Спробуй ще раз через /start або /вага."
+)
 
 
 def _user_data(context: ContextTypes.DEFAULT_TYPE) -> dict[str, Any]:
@@ -54,14 +59,47 @@ def _success_message(
     )
 
 
+async def _complete_onboarding_if_active(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> bool:
+    user_data = _user_data(context)
+    if user_data.get(ONBOARDING_STEP_KEY) is None:
+        return True
+
+    message = update.effective_message
+    user = update.effective_user
+    if message is None or user is None:
+        return False
+
+    database_path = context.bot_data["database_path"]
+    conn = connect(database_path)
+    try:
+        settings = get_or_create_settings(conn, user.id)
+        if settings.setup_completed_at is None:
+            complete_onboarding(conn, user.id, reminder_time=settings.reminder_time)
+    except (RepositoryError, sqlite3.Error):
+        await message.reply_text(SETUP_SAVE_ERROR_MESSAGE)
+        return False
+    finally:
+        conn.close()
+
+    user_data.pop(ONBOARDING_STEP_KEY, None)
+    return True
+
+
 async def vaga_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _user_data(context).pop("settings_awaiting", None)
+    if not await _complete_onboarding_if_active(update, context):
+        return
     _user_data(context)[AWAITING_WEIGH_IN_KEY] = True
     if update.effective_message is not None:
         await update.effective_message.reply_text(HINT_MESSAGE, parse_mode="Markdown")
 
 
 async def weigh_in_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if _user_data(context).get(ONBOARDING_STEP_KEY) == "custom_time":
+        return
+
     if not _user_data(context).get(AWAITING_WEIGH_IN_KEY):
         return
 

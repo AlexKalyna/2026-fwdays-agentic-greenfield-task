@@ -27,11 +27,11 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-ONB-01   | `/start` runs a one-time two-step setup: (1) Sunday reminder time, (2) optional first weigh-in | accepted |
-| FR-ONB-02   | Reminder time step offers presets, custom time entry, and **Skip** → default `09:00`           | accepted |
-| FR-ONB-03   | First weigh-in step offers **Now** (log immediately) or **Later** (use `/вага` when ready)     | accepted |
-| FR-ONB-04   | On setup complete, `display_name` is set to **`Оленка`** (no name prompt during onboarding)    | accepted |
-| FR-ONB-05   | Skipping or dismissing setup applies defaults: name `Оленка`, reminder `09:00`, tz `Europe/Kyiv` | accepted |
+| FR-ONB-01   | `/start` runs a one-time two-step setup: (1) Sunday reminder time, (2) optional first weigh-in | shipped |
+| FR-ONB-02   | Reminder time step offers presets, custom time entry, and **Skip** → default `09:00`           | shipped |
+| FR-ONB-03   | First weigh-in step offers **Now** (log immediately) or **Later** (use `/вага` when ready)     | shipped |
+| FR-ONB-04   | On setup complete, `display_name` is set to **`Оленка`** (no name prompt during onboarding)    | shipped |
+| FR-ONB-05   | Skipping or dismissing setup applies defaults: name `Оленка`, reminder `09:00`, tz `Europe/Kyiv` | shipped |
 
 ### Weigh-in logging (capability `weigh-in`)
 
@@ -118,7 +118,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
 | FR-CMD-01   | Bot implements: `/start`, `/вага`, `/прогрес`, `/історія`, `/місяць`, `/весь_час`, `/налаштування`, `/скасувати`, `/допомога` | accepted |
-| FR-CMD-02   | Completed onboarding: `/start` shows short help instead of re-running setup                      | accepted |
+| FR-CMD-02   | Completed onboarding: `/start` shows short help instead of re-running setup                      | shipped |
 
 ---
 

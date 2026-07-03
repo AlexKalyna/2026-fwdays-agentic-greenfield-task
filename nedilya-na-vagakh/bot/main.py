@@ -14,6 +14,12 @@ from telegram.ext import (
 from bot.config import Config, load_config
 from bot.db import connect, init_schema
 from bot.handlers.help import dopomoga_command
+from bot.handlers.onboarding import (
+    ONBOARDING_CALLBACK_PATTERN,
+    onboarding_callback,
+    onboarding_message,
+    start_command,
+)
 from bot.handlers.settings import (
     SETTINGS_CALLBACK_PATTERN,
     nalashtuvannya_command,
@@ -34,6 +40,7 @@ from bot.handlers.weigh_in import (
 from bot.middleware import allowlist_gate
 
 VAGA_COMMAND = filters.Regex(r"^/вага(?:@\w+)?$")
+START_COMMAND = filters.Regex(r"^/start(?:@\w+)?$")
 SKASUVATY_COMMAND = filters.Regex(r"^/скасувати(?:@\w+)?$")
 DOPOMOGA_COMMAND = filters.Regex(r"^/допомога(?:@\w+)?$")
 ISTORIYA_COMMAND = filters.Regex(r"^/історія(?:@\w+)?$")
@@ -61,6 +68,7 @@ def build_application(config: Config) -> Application:
     application.add_handler(TypeHandler(Update, allowlist_gate), group=-1)
 
     application.add_handler(MessageHandler(VAGA_COMMAND, vaga_command), group=0)
+    application.add_handler(MessageHandler(START_COMMAND, start_command), group=0)
     application.add_handler(
         MessageHandler(SKASUVATY_COMMAND, skasuvaty_command), group=0
     )
@@ -74,6 +82,16 @@ def build_application(config: Config) -> Application:
     )
     application.add_handler(
         CallbackQueryHandler(settings_callback, pattern=SETTINGS_CALLBACK_PATTERN),
+        group=0,
+    )
+    application.add_handler(
+        CallbackQueryHandler(onboarding_callback, pattern=ONBOARDING_CALLBACK_PATTERN),
+        group=0,
+    )
+    application.add_handler(
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND, onboarding_message, block=False
+        ),
         group=0,
     )
     application.add_handler(
