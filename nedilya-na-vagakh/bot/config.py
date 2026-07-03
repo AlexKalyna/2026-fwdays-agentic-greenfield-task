@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 
 class ConfigError(ValueError):
@@ -9,6 +10,7 @@ class ConfigError(ValueError):
 
 
 DEFAULT_DATABASE_PATH = "./data/bot.db"
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 @dataclass(frozen=True)
@@ -41,6 +43,11 @@ def _parse_allowed_user_ids(raw: str) -> frozenset[int]:
 
 
 def load_config(environ: dict[str, str] | None = None) -> Config:
+    if environ is None:
+        from dotenv import load_dotenv
+
+        load_dotenv(_ENV_FILE)
+
     env = os.environ if environ is None else environ
 
     bot_token = env.get("BOT_TOKEN", "").strip()

@@ -38,6 +38,22 @@ def test_load_config_missing_allowlist():
         load_config({"BOT_TOKEN": "test-token"})
 
 
+def test_load_config_reads_dotenv_file(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "BOT_TOKEN=file-token\nALLOWED_USER_IDS=42\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("bot.config._ENV_FILE", env_file)
+    monkeypatch.delenv("BOT_TOKEN", raising=False)
+    monkeypatch.delenv("ALLOWED_USER_IDS", raising=False)
+
+    config = load_config()
+
+    assert config.bot_token == "file-token"
+    assert config.allowed_user_ids == frozenset({42})
+
+
 def test_load_config_invalid_allowlist_value():
     with pytest.raises(ConfigError, match="invalid value"):
         load_config(
