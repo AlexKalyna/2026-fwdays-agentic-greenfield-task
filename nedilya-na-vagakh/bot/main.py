@@ -3,11 +3,23 @@ from __future__ import annotations
 import logging
 
 from telegram import Update
-from telegram.ext import Application, MessageHandler, TypeHandler, filters
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    MessageHandler,
+    TypeHandler,
+    filters,
+)
 
 from bot.config import Config, load_config
 from bot.db import connect, init_schema
 from bot.handlers.help import dopomoga_command
+from bot.handlers.settings import (
+    SETTINGS_CALLBACK_PATTERN,
+    nalashtuvannya_command,
+    settings_callback,
+    settings_message,
+)
 from bot.handlers.views import (
     istoriya_command,
     misyats_command,
@@ -28,6 +40,7 @@ ISTORIYA_COMMAND = filters.Regex(r"^/історія(?:@\w+)?$")
 PROGRES_COMMAND = filters.Regex(r"^/прогрес(?:@\w+)?$")
 MISYATS_COMMAND = filters.Regex(r"^/місяць(?:@\w+)?$")
 VES_CHAS_COMMAND = filters.Regex(r"^/весь_час(?:@\w+)?$")
+NALASHTUVANNYA_COMMAND = filters.Regex(r"^/налаштування(?:@\w+)?$")
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -56,6 +69,17 @@ def build_application(config: Config) -> Application:
     application.add_handler(MessageHandler(PROGRES_COMMAND, progres_command), group=0)
     application.add_handler(MessageHandler(MISYATS_COMMAND, misyats_command), group=0)
     application.add_handler(MessageHandler(VES_CHAS_COMMAND, ves_chas_command), group=0)
+    application.add_handler(
+        MessageHandler(NALASHTUVANNYA_COMMAND, nalashtuvannya_command), group=0
+    )
+    application.add_handler(
+        CallbackQueryHandler(settings_callback, pattern=SETTINGS_CALLBACK_PATTERN),
+        group=0,
+    )
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, settings_message, block=False),
+        group=0,
+    )
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, weigh_in_message, block=False),
         group=0,

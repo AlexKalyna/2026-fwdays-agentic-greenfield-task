@@ -14,6 +14,8 @@ from bot.repository import (
     insert_weigh_in,
     list_weigh_ins_asc,
     list_weigh_ins_desc,
+    update_display_name,
+    update_reminder_time,
 )
 
 
@@ -290,4 +292,44 @@ def test_count_weigh_ins():
     )
 
     assert count_weigh_ins(conn, user_id=42) == 1
+    conn.close()
+
+
+def test_update_display_name_persists_new_value():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    updated = update_display_name(conn, telegram_user_id=42, display_name="Марія")
+
+    assert updated.display_name == "Марія"
+    refreshed = get_or_create_settings(conn, telegram_user_id=42)
+    assert refreshed.display_name == "Марія"
+    conn.close()
+
+
+def test_update_display_name_can_clear_to_null():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    updated = update_display_name(conn, telegram_user_id=42, display_name=None)
+
+    assert updated.display_name is None
+    refreshed = get_or_create_settings(conn, telegram_user_id=42)
+    assert refreshed.display_name is None
+    conn.close()
+
+
+def test_update_reminder_time_persists_new_value():
+    conn = connect(":memory:")
+    init_schema(conn)
+    get_or_create_settings(conn, telegram_user_id=42)
+
+    updated = update_reminder_time(conn, telegram_user_id=42, reminder_time="10:30")
+
+    assert updated.reminder_time == "10:30"
+    refreshed = get_or_create_settings(conn, telegram_user_id=42)
+    assert refreshed.reminder_time == "10:30"
+    assert refreshed.reminder_timezone == DEFAULT_REMINDER_TIMEZONE
     conn.close()

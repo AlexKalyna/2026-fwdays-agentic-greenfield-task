@@ -32,6 +32,7 @@ async def test_dopomoga_command_lists_commands():
     assert "/історія" in reply
     assert "/місяць" in reply
     assert "/весь_час" in reply
+    assert "/налаштування" in reply
 
 
 @pytest.mark.asyncio

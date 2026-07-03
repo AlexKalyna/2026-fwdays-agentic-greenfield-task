@@ -55,6 +55,7 @@ def _success_message(
 
 
 async def vaga_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    _user_data(context).pop("settings_awaiting", None)
     _user_data(context)[AWAITING_WEIGH_IN_KEY] = True
     if update.effective_message is not None:
         await update.effective_message.reply_text(HINT_MESSAGE, parse_mode="Markdown")

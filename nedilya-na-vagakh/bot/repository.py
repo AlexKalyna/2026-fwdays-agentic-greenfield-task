@@ -191,3 +191,45 @@ def count_weigh_ins(conn: sqlite3.Connection, user_id: int) -> int:
     if row is None:
         return 0
     return int(row["count"])
+
+
+def update_display_name(
+    conn: sqlite3.Connection, telegram_user_id: int, display_name: str | None
+) -> UserSettings:
+    get_or_create_settings(conn, telegram_user_id)
+    conn.execute(
+        "UPDATE user_settings SET display_name = ? WHERE telegram_user_id = ?",
+        (display_name, telegram_user_id),
+    )
+    conn.commit()
+
+    row = conn.execute(
+        "SELECT * FROM user_settings WHERE telegram_user_id = ?",
+        (telegram_user_id,),
+    ).fetchone()
+    if row is None:
+        raise RepositoryError(
+            f"user_settings row missing after update for user {telegram_user_id}"
+        )
+    return _row_to_settings(row)
+
+
+def update_reminder_time(
+    conn: sqlite3.Connection, telegram_user_id: int, reminder_time: str
+) -> UserSettings:
+    get_or_create_settings(conn, telegram_user_id)
+    conn.execute(
+        "UPDATE user_settings SET reminder_time = ? WHERE telegram_user_id = ?",
+        (reminder_time, telegram_user_id),
+    )
+    conn.commit()
+
+    row = conn.execute(
+        "SELECT * FROM user_settings WHERE telegram_user_id = ?",
+        (telegram_user_id,),
+    ).fetchone()
+    if row is None:
+        raise RepositoryError(
+            f"user_settings row missing after update for user {telegram_user_id}"
+        )
+    return _row_to_settings(row)

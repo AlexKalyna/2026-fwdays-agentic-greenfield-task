@@ -102,9 +102,9 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID          | Description                                                                                    | Status   |
 | ----------- | ---------------------------------------------------------------------------------------------- | -------- |
-| FR-SET-01   | `/налаштування` shows current name and reminder time; allows changing reminder time            | accepted |
-| FR-SET-02   | `/налаштування` allows changing `display_name` or **clearing** it (revert to general messages) | accepted |
-| FR-SET-03   | Name validation: trim whitespace, reject empty string, max length 40 characters                  | accepted |
+| FR-SET-01   | `/налаштування` shows current name and reminder time; allows changing reminder time            | shipped |
+| FR-SET-02   | `/налаштування` allows changing `display_name` or **clearing** it (revert to general messages) | shipped |
+| FR-SET-03   | Name validation: trim whitespace, reject empty string, max length 40 characters                  | shipped |
 
 ### Access control (capability `security`)
 

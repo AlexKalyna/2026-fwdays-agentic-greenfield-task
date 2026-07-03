@@ -1,10 +1,4 @@
-# help-command
-
-## Purpose
-
-`/допомога` handler and Ukrainian help text listing commands and weigh-in input format.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Help command lists commands and input format
 
