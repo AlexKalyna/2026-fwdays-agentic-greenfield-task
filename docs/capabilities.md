@@ -24,7 +24,7 @@ Capability **status** mirrors the PRD lifecycle for that capability's requiremen
 | 8 | `onboarding`    | `add-onboarding-flow`        | FR-ONB-01..05, FR-CMD-02                  | settings, weigh-in | shipped |
 | 9 | `reminders`     | `add-sunday-reminders`       | FR-REM-01..03, NFR-TZ-01                  | settings, onboarding | shipped |
 | 10 | `commands`     | `add-command-surface-polish` | FR-CMD-01                                 | all above   | shipped  |
-| 11 | `docker-deploy` | `add-docker-deployment`      | TC-DEPLOY-02, NFR-OPS-01, NFR-REL-01      | foundation  | accepted |
+| 11 | `docker-deploy` | `add-docker-deployment`      | TC-DEPLOY-02, NFR-OPS-01, NFR-REL-01      | foundation  | shipped  |
 
 Note: the PRD's `security` capability (FR-SEC-01/02) is folded into
 `foundation` — the allowlist middleware is small, gates every handler, and must

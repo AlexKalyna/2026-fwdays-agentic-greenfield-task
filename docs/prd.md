@@ -142,7 +142,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | TC-STACK-02 | Persistence via **SQLite** (single-file DB acceptable for v1)                                  | shipped |
 | TC-STACK-03 | Project lives under repo path `nedilya-na-vagakh/` (bot root, tests, `requirements.txt`)       | shipped |
 | TC-DEPLOY-01| Bot runs via long polling or webhook; deployment target is operator’s choice (Railway, VPS, etc.) | shipped |
-| TC-DEPLOY-02| Project provides a **`Dockerfile`** (and optional **`docker-compose.yml`**) under `nedilya-na-vagakh/` for long-polling deployment; secrets via environment (`BOT_TOKEN`, `ALLOWED_USER_IDS`); SQLite at `DATABASE_PATH` on a **mounted volume** so data survives container restarts (NFR-REL-01); README documents build and run (including ARM64 for home-router hosts) | accepted |
+| TC-DEPLOY-02| Project provides a **`Dockerfile`** (and optional **`docker-compose.yml`**) under `nedilya-na-vagakh/` for long-polling deployment; secrets via environment (`BOT_TOKEN`, `ALLOWED_USER_IDS`); SQLite at `DATABASE_PATH` on a **mounted volume** so data survives container restarts (NFR-REL-01); README documents build and run (including ARM64 for home-router hosts) | shipped |
 
 ---
 

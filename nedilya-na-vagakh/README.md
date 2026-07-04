@@ -41,6 +41,67 @@ cp .env.example .env   # fill in BOT_TOKEN and ALLOWED_USER_IDS
 python -m bot
 ```
 
+## Run with Docker
+
+For always-on deployment (VPS, home router, etc.) when a local Python process is not
+running (`TC-DEPLOY-02`). Long polling needs **outbound** internet only — no published
+ports.
+
+### Prerequisites
+
+- Docker and Docker Compose
+- `.env` with `BOT_TOKEN` and `ALLOWED_USER_IDS` (copy from `.env.example`)
+
+### Build and run
+
+```bash
+cd nedilya-na-vagakh
+cp .env.example .env   # fill in secrets
+docker compose build
+docker compose up -d
+docker compose logs -f bot
+```
+
+SQLite is stored on the host at `./data/bot.db` (mounted to `/app/data` in the
+container). Back up that directory before image rebuilds or host maintenance
+(`NFR-REL-01`).
+
+Stop the bot:
+
+```bash
+docker compose down
+```
+
+### ARM64 home-router hosts
+
+Build for ARM targets (e.g. Xiaomi BE7000) on your dev machine:
+
+```bash
+docker build --platform linux/arm64 -t nedilya-bot .
+```
+
+On the router, mount persistent USB storage for the database, for example:
+
+```text
+Host:  /mnt/usb-xxxx/nedilya/data
+Container: /app/data
+```
+
+Example `docker run` (paths illustrative):
+
+```bash
+docker run -d \
+  --name nedilya-bot \
+  --restart unless-stopped \
+  --env-file .env \
+  -e DATABASE_PATH=/app/data/bot.db \
+  -v /mnt/usb-xxxx/nedilya/data:/app/data \
+  nedilya-bot
+```
+
+Secrets are supplied via environment at run time — never baked into the image
+(`NFR-OPS-01`).
+
 ## Development
 
 | When | What runs |
