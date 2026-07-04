@@ -3,7 +3,7 @@
 > Static context for agents and humans. For implementable requirements and
 > stable IDs, see [`docs/prd.md`](prd.md).
 
-Last updated: 2026-06-28
+Last updated: 2026-07-04
 
 ## What this is
 
@@ -85,3 +85,20 @@ The bot replaces screenshots with:
 
 Python, `python-telegram-bot`, and SQLite — chosen for speed of delivery,
 testability, and simple deployment. See `TC-*` rows in [`prd.md`](prd.md).
+
+### Deployment
+
+The bot is a **long-running process** (long polling + Sunday reminder scheduler).
+For local development, run Python directly; for **always-on** use (e.g. when the
+developer's laptop is off on weekends), the operator may run it in **Docker** on a
+home router, VPS, or similar host (`TC-DEPLOY-02`).
+
+Container deployment expectations:
+
+- **Long polling** — outbound HTTPS only; no inbound ports or webhook URL required.
+- **Secrets** — `BOT_TOKEN` and allowlist via environment, not baked into the image
+  (`NFR-OPS-01`).
+- **Persistence** — SQLite file on a mounted volume at `DATABASE_PATH` so weigh-in
+  history survives container rebuilds (`NFR-REL-01`).
+- **Home ARM hosts** — images should support `linux/arm64` (e.g. Xiaomi BE7000 with
+  USB-backed storage for `data/bot.db`).

@@ -1,6 +1,6 @@
 # PRD — «Неділя на вагах» (Sunday Weigh-in Telegram Bot)
 
-Last updated: 2026-07-03
+Last updated: 2026-07-04
 
 This document is the **single source of truth** for what the product does and
 what constraints govern it. Every requirement has a stable ID. Specs, tests,
@@ -126,10 +126,10 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID           | Description                                                                                   | Status   |
 | ------------ | --------------------------------------------------------------------------------------------- | -------- |
-| NFR-I18N-01  | All user-facing bot text is **Ukrainian**                                                     | accepted |
+| NFR-I18N-01  | All user-facing bot text is **Ukrainian**                                                     | shipped |
 | NFR-TZ-01    | Calendar month and reminders use **Europe/Kyiv**                                              | shipped |
 | NFR-REL-01   | Weigh-in data persists across bot restarts (durable storage)                                  | shipped |
-| NFR-TEST-01  | Pure logic (parse, compare, month stats, trend labels, messages selection) has **unit tests**  | accepted |
+| NFR-TEST-01  | Pure logic (parse, compare, month stats, trend labels, messages selection) has **unit tests**  | shipped |
 | NFR-OPS-01   | Secrets (`BOT_TOKEN`, allowlist) load from environment; `.env.example` documents required vars | shipped |
 
 ---
@@ -142,6 +142,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | TC-STACK-02 | Persistence via **SQLite** (single-file DB acceptable for v1)                                  | shipped |
 | TC-STACK-03 | Project lives under repo path `nedilya-na-vagakh/` (bot root, tests, `requirements.txt`)       | shipped |
 | TC-DEPLOY-01| Bot runs via long polling or webhook; deployment target is operator’s choice (Railway, VPS, etc.) | shipped |
+| TC-DEPLOY-02| Project provides a **`Dockerfile`** (and optional **`docker-compose.yml`**) under `nedilya-na-vagakh/` for long-polling deployment; secrets via environment (`BOT_TOKEN`, `ALLOWED_USER_IDS`); SQLite at `DATABASE_PATH` on a **mounted volume** so data survives container restarts (NFR-REL-01); README documents build and run (including ARM64 for home-router hosts) | accepted |
 
 ---
 
@@ -149,10 +150,10 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 
 | ID           | Description                                                                                  | Status   |
 | ------------ | -------------------------------------------------------------------------------------------- | -------- |
-| BC-TONE-01   | Supportive tone on plateau and weight gain; avoid shame, medical claims, and «регрес» label    | accepted |
-| BC-PRIVACY-01| No analytics, no third-party tracking, no sharing data outside the bot’s database            | accepted |
-| BC-SCOPE-01  | v1 is **single-user** (wife only); no husband read-only access                               | accepted |
-| BC-SCOPE-02  | Photo OCR and LLM insights are **out of scope** for v1                                       | accepted |
+| BC-TONE-01   | Supportive tone on plateau and weight gain; avoid shame, medical claims, and «регрес» label    | shipped |
+| BC-PRIVACY-01| No analytics, no third-party tracking, no sharing data outside the bot’s database            | shipped |
+| BC-SCOPE-01  | v1 is **single-user** (wife only); no husband read-only access                               | shipped |
+| BC-SCOPE-02  | Photo OCR and LLM insights are **out of scope** for v1                                       | shipped |
 
 ---
 
